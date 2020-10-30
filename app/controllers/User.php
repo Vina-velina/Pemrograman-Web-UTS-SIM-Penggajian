@@ -20,12 +20,12 @@ class User extends Controller
                         header('Location:' . BASEURL . '/user/home');
                         exit;
                     } else {
-                        Flasher::setflash('Gagal', 'Password Anda Salah !', 'danger');
+                        Flasher::setflash('Gagal', 'Ditemukan, Password Anda Salah !', 'danger');
                         header('Location:' . BASEURL . '/user');
                         exit;
                     }
                 } else {
-                    Flasher::setflash('Gagal', 'Email Tidak Ditemukan', 'danger');
+                    Flasher::setflash('Gagal', 'Ditemukan, Email Anda Salah', 'danger');
                     header('Location:' . BASEURL . '/user');
                     exit;
                 }
@@ -118,12 +118,48 @@ class User extends Controller
                             echo "Password Tidak Sesuai";
                         } else {
                             $new_pass = password_hash($_POST['passwd'], PASSWORD_DEFAULT);
-                            if ($this->model('User_model')->inputUser($_POST, $new_pass) > 0) {
-                                Flasher::setflash('Berhasil', 'Ditambahkan', 'success');
-                                header('Location:' . BASEURL . '/user/pegawai');
-                                exit;
+                            if ($_FILES['file']['error'] == 0) {
+                                // Settingan
+                                $eks_foto_boleh = array('png', 'jpg');
+                                $nama_foto = $_FILES['file']['name'];
+                                $foto = explode('.', $nama_foto);
+                                $eksfoto = strtolower(end($foto));
+                                $ukuranfoto = $_FILES['file']['size'];
+                                $tmpfoto = $_FILES['file']['tmp_name'];
+                                if (in_array($eksfoto, $eks_foto_boleh) === true) {
+                                    if ($ukuranfoto < 1500000) {
+                                        //  Generate Nama Gambar Baru
+                                        $new_Foto = uniqid() . "_" . $_POST['nama'];
+
+                                        $new_Foto .= '.';
+                                        $new_Foto .= $eksfoto;
+                                        $destination_path = getcwd() . DIRECTORY_SEPARATOR;
+
+                                        // Target
+                                        $target_foto = $destination_path . '/upload/' . $new_Foto;
+
+                                        if ($this->model('User_model')->inputUser($_POST, $new_pass, $new_Foto) > 0) {
+                                            move_uploaded_file($tmpfoto, $target_foto);
+                                            Flasher::setflash('Berhasil', 'Ditambahkan', 'success');
+                                            header('Location:' . BASEURL . '/user/pegawai');
+                                            exit;
+                                        } else {
+                                            Flasher::setflash('Gagal', 'Ditambahkan, Terjadi Kesalahan Dalam Input Data', 'danger');
+                                            header('Location:' . BASEURL . '/user/pegawai');
+                                            exit;
+                                        }
+                                    } else {
+                                        Flasher::setflash('Gagal', 'Ditambahkan, Ukuran Foto Melebihi', 'danger');
+                                        header('Location:' . BASEURL . '/user/tambah_pegawai');
+                                        exit;
+                                    }
+                                } else {
+                                    Flasher::setflash('Gagal', 'Ditambahkan, Ekstensi Foto Tidak Diperbolehkan', 'danger');
+                                    header('Location:' . BASEURL . '/user/tambah_pegawai');
+                                    exit;
+                                }
                             } else {
-                                Flasher::setflash('Gagal', 'Terjadi Kesalahan Dalam Input Data', 'danger');
+                                Flasher::setflash('Gagal', 'Ditambahkan, Foto Wajib Diisi', 'danger');
                                 header('Location:' . BASEURL . '/user/pegawai');
                                 exit;
                             }
@@ -155,14 +191,48 @@ class User extends Controller
                 $user_cari = $this->model('User_model')->getUserWhere($id);
                 $data['detail_user'] = $user_cari;
                 if (isset($_POST['submit'])) {
-                    if ($this->model('User_model')->editUser($_POST, $id) > 0) {
-                        Flasher::setflash('Berhasil', '.Data Berhasil Diubah dan Diperbaharui', 'success');
+                    if ($_POST['nama'] == $user_cari[0]['nama_user'] && $_POST['alamat'] == $user_cari[0]['alamat_asal'] && $_POST['jabatan'] == $user_cari[0]['jabatan'] && $_FILES['file']['error'] != 0) {
+                        Flasher::setflash('Berhasil', 'Diubah dan Diperbaharui', 'success');
                         header('Location:' . BASEURL . '/user/pegawai');
                         exit;
                     } else {
-                        Flasher::setflash('Gagal', 'Terjadi Kesalahan Dalam Ubah Data', 'danger');
-                        header('Location:' . BASEURL . '/user/pegawai');
-                        exit;
+
+                        // Kalau misal tidak bisa terhapus, kata "penggajian" bisa disesuaian dengan nama folder localhostnya
+                        if (unlink($_SERVER['DOCUMENT_ROOT'] . "/penggajian/public/upload/" . $_POST['file_old'])) {
+                            // Settingan
+                            $eks_foto_boleh = array('png', 'jpg');
+                            $nama_foto = $_FILES['file']['name'];
+                            $foto = explode('.', $nama_foto);
+                            $eksfoto = strtolower(end($foto));
+                            $ukuranfoto = $_FILES['file']['size'];
+                            $tmpfoto = $_FILES['file']['tmp_name'];
+                            if (in_array($eksfoto, $eks_foto_boleh) === true) {
+                                if ($ukuranfoto < 1500000) {
+                                    //  Generate Nama Gambar Baru
+                                    $new_Foto = uniqid() . "_" . $_POST['nama'];
+                                    $new_Foto .= '.';
+                                    $new_Foto .= $eksfoto;
+                                    $destination_path = getcwd() . DIRECTORY_SEPARATOR;
+                                    // Target
+                                    $target_foto = $destination_path . '/upload/' . $new_Foto;
+
+                                    if ($this->model('User_model')->editUser($_POST, $id, $new_Foto) > 0) {
+                                        move_uploaded_file($tmpfoto, $target_foto);
+                                        Flasher::setflash('Berhasil', 'Diubah dan Diperbaharui', 'success');
+                                        header('Location:' . BASEURL . '/user/pegawai');
+                                        exit;
+                                    } else {
+                                        Flasher::setflash('Gagal', 'Diubah, Terjadi Kesalahan Dalam Ubah Data', 'danger');
+                                        header('Location:' . BASEURL . '/user/ubah_user/' . $id);
+                                        exit;
+                                    }
+                                } else {
+                                    Flasher::setflash('Gagal', 'Ditambahkan, Ukuran Foto Melebihi', 'danger');
+                                    header('Location:' . BASEURL . '/user/tambah_pegawai');
+                                    exit;
+                                }
+                            }
+                        }
                     }
                 } else {
                     if (!empty($id) && !empty($user_cari)) {
@@ -171,7 +241,7 @@ class User extends Controller
                         $this->view('page/ubah_user', $data);
                         $this->view('master/footer', $data);
                     } else {
-                        Flasher::setflash('Gagal', 'Error Parameter', 'danger');
+                        Flasher::setflash('Gagal', 'Diubah, Error Parameter', 'danger');
                         header('Location:' . BASEURL . '/user/pegawai');
                         exit;
                     }
@@ -195,18 +265,21 @@ class User extends Controller
                 $user_cari = $this->model('User_model')->getUserWhere($id);
                 $data['detail_user'] = $user_cari;
                 if (!empty($id) && !empty($user_cari)) {
-                    // Menyusun website
-                    if ($this->model('User_model')->deleteUserWhere($id) > 0) {
-                        Flasher::setflash('Berhasil', '.Data Berhasil Dihapus', 'success');
-                        header('Location:' . BASEURL . '/user/pegawai');
-                        exit;
-                    } else {
-                        Flasher::setflash('Gagal', 'Terjadi Kesalahan Dalam Hapus Data', 'danger');
-                        header('Location:' . BASEURL . '/user/pegawai');
-                        exit;
+                    // Kalau misal tidak bisa terhapus, kata "penggajian" bisa disesuaian dengan nama folder localhostnya
+                    if (unlink($_SERVER['DOCUMENT_ROOT'] . "/penggajian/public/upload/" . $user_cari[0]['foto_user'])) {
+                        // Menyusun website
+                        if ($this->model('User_model')->deleteUserWhere($id) > 0) {
+                            Flasher::setflash('Berhasil', 'Berhasil Dihapus', 'success');
+                            header('Location:' . BASEURL . '/user/pegawai');
+                            exit;
+                        } else {
+                            Flasher::setflash('Gagal', 'Dihapus, Terjadi Kesalahan Dalam Hapus Data', 'danger');
+                            header('Location:' . BASEURL . '/user/pegawai');
+                            exit;
+                        }
                     }
                 } else {
-                    Flasher::setflash('Gagal', 'Error Parameter', 'danger');
+                    Flasher::setflash('Gagal', 'Dihapus, Error Parameter', 'danger');
                     header('Location:' . BASEURL . '/user/pegawai');
                     exit;
                 }
@@ -235,12 +308,12 @@ class User extends Controller
                         header('Location:' . BASEURL . '/user/pegawai');
                         exit;
                     } else {
-                        Flasher::setflash('Gagal', 'Terjadi Kesalahan Dalam Aktivasi', 'danger');
+                        Flasher::setflash('Gagal', 'Diubah, Terjadi Kesalahan Dalam Aktivasi', 'danger');
                         header('Location:' . BASEURL . '/user/pegawai');
                         exit;
                     }
                 } else {
-                    Flasher::setflash('Gagal', 'Error Parameter', 'danger');
+                    Flasher::setflash('Gagal', 'Diubah, Error Parameter', 'danger');
                     header('Location:' . BASEURL . '/user/pegawai');
                     exit;
                 }
@@ -269,12 +342,12 @@ class User extends Controller
                         header('Location:' . BASEURL . '/user/pegawai');
                         exit;
                     } else {
-                        Flasher::setflash('Gagal', 'Terjadi Kesalahan Dalam Aktivasi', 'danger');
+                        Flasher::setflash('Gagal', 'Diubah, Terjadi Kesalahan Dalam Aktivasi', 'danger');
                         header('Location:' . BASEURL . '/user/pegawai');
                         exit;
                     }
                 } else {
-                    Flasher::setflash('Gagal', 'Error Pada Parameter', 'danger');
+                    Flasher::setflash('Gagal', 'Diubah, Error Pada Parameter', 'danger');
                     header('Location:' . BASEURL . '/user/pegawai');
                     exit;
                 }
@@ -303,12 +376,12 @@ class User extends Controller
                         header('Location:' . BASEURL . '/user/data_gaji');
                         exit;
                     } else {
-                        Flasher::setflash('Gagal', 'Terjadi Kesalahan Dalam Proses Set Bayar', 'danger');
+                        Flasher::setflash('Gagal', 'Diubah, Terjadi Kesalahan Dalam Proses Set Bayar', 'danger');
                         header('Location:' . BASEURL . '/user/data_gaji');
                         exit;
                     }
                 } else {
-                    Flasher::setflash('Gagal', 'Error Parameter', 'danger');
+                    Flasher::setflash('Gagal', 'Diubah, Error Parameter', 'danger');
                     header('Location:' . BASEURL . '/user/data_gaji');
                     exit;
                 }
@@ -335,11 +408,11 @@ class User extends Controller
                 if (isset($_POST['submit'])) {
                     $total_gaji = $gaji_cari[0]['besar_gaji'] * $_POST['hadir'];
                     if ($this->model('User_model')->editGajiUser($_POST, $id, $total_gaji) > 0) {
-                        Flasher::setflash('Berhasil', '. Data Berhasil Diubah Dan Diperbaharui', 'success');
+                        Flasher::setflash('Berhasil', 'Diubah Dan Diperbaharui', 'success');
                         header('Location:' . BASEURL . '/user/data_gaji');
                         exit;
                     } else {
-                        Flasher::setflash('Gagal', 'Terjadi Kesahalan Dalam Ubah Data', 'danger');
+                        Flasher::setflash('Gagal', 'Diubah, Terjadi Kesahalan Dalam Ubah Data', 'danger');
                         header('Location:' . BASEURL . '/user/data_gaji');
                         exit;
                     }
@@ -350,7 +423,7 @@ class User extends Controller
                         $this->view('page/ubah_gaji', $data);
                         $this->view('master/footer', $data);
                     } else {
-                        Flasher::setflash('Gagal', 'Error Parameter', 'danger');
+                        Flasher::setflash('Gagal', 'Diubah, Error Parameter', 'danger');
                         header('Location:' . BASEURL . '/user/data_gaji');
                         exit;
                     }
@@ -380,12 +453,12 @@ class User extends Controller
                         header('Location:' . BASEURL . '/user/data_gaji');
                         exit;
                     } else {
-                        Flasher::setflash('Gagal', 'Terjadi Kesahalan Dalam Hapus Data', 'danger');
+                        Flasher::setflash('Gagal', 'Dihapus, Terjadi Kesahalan Dalam Hapus Data', 'danger');
                         header('Location:' . BASEURL . '/user/data_gaji');
                         exit;
                     }
                 } else {
-                    Flasher::setflash('Gagal', 'Error Parameter', 'danger');
+                    Flasher::setflash('Gagal', 'Dihapus, Error Parameter', 'danger');
                     header('Location:' . BASEURL . '/user/data_gaji');
                     exit;
                 }
@@ -444,16 +517,18 @@ class User extends Controller
                 $bulan = date('F Y');
                 if (isset($_POST['submit'])) {
                     if ($this->model('User_model')->cekBulanGaji($_POST['pegawai'], $bulan) > 0) {
-                        echo "Gaji Dibulan " . date('F Y') . " Untuk Karyawan Yang Dipilih Sudah Diatur Sebelumnya";
+                        Flasher::setflash('Gagal', 'Gaji Dibulan "' . date('F Y') . '" Untuk Karyawan Yang Dipilih Sudah Diatur Sebelumnya', 'danger');
+                        header('Location:' . BASEURL . '/user/tambah_gaji');
+                        exit;
                     } else {
                         $total_gaji = $_POST['hadir'] * $besar_gaji;
                         $create_by = $session[0]['nama_user'];
                         if ($this->model('User_model')->inputGaji($_POST, $bulan, $besar_gaji, $total_gaji, $create_by) > 0) {
-                            Flasher::setflash('Berhasil', '. Data Gaji Berhasil Ditambahkan', 'success');
+                            Flasher::setflash('Berhasil', 'Ditambahkan', 'success');
                             header('Location:' . BASEURL . '/user/data_gaji');
                             exit;
                         } else {
-                            Flasher::setflash('Gagal', 'Terjadi Kesahalan Dalam Penginputan', 'danger');
+                            Flasher::setflash('Gagal', 'Ditambahkan, Terjadi Kesahalan Dalam Penginputan', 'danger');
                             header('Location:' . BASEURL . '/user/data_gaji');
                             exit;
                         }
@@ -492,12 +567,12 @@ class User extends Controller
                                 header('Location:' . BASEURL . '/user/home');
                                 exit;
                             } else {
-                                Flasher::setflash('Gagal', 'Terjadi Kesahalan Dalam Ubah Data', 'danger');
+                                Flasher::setflash('Gagal', 'Diubah, Terjadi Kesahalan Dalam Ubah Data', 'danger');
                                 header('Location:' . BASEURL . '/user/data_gaji');
                                 exit;
                             }
                         } else {
-                            Flasher::setflash('Gagal', 'Password Saat Ini Tidak Sesuai', 'danger');
+                            Flasher::setflash('Gagal', 'Diubah, Password Saat Ini Tidak Sesuai', 'danger');
                             header('Location:' . BASEURL . '/user/data_gaji');
                             exit;
                         }
@@ -509,7 +584,7 @@ class User extends Controller
                         $this->view('page/ubah_password', $data);
                         $this->view('master/footer', $data);
                     } else {
-                        Flasher::setflash('Gagal', 'Error Parameter', 'danger');
+                        Flasher::setflash('Gagal', 'Diubah, Error Parameter', 'danger');
                         header('Location:' . BASEURL . '/user/data_gaji');
                         exit;
                     }

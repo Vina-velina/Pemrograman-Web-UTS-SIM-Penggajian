@@ -51,12 +51,13 @@ class User_model
         $this->db->query('SELECT*FROM user WHERE jabatan != 1');
         return $this->db->resulSet();
     }
-    public function inputUser($data, $pass)
+    public function inputUser($data, $pass, $new_Foto)
     {
-        $query = "INSERT INTO user (email,password,nama_user,jabatan,alamat_asal,active,create_at) VALUES (:email,:passwd,:nama,:jabatan,:alamat,:active,:create_at)";
+        $query = "INSERT INTO user (email,password,foto_user,nama_user,jabatan,alamat_asal,active,create_at) VALUES (:email,:passwd,:foto,:nama,:jabatan,:alamat,:active,:create_at)";
         $this->db->query($query);
         $this->db->bind('email', $data['email']);
         $this->db->bind('passwd', $pass);
+        $this->db->bind('foto', $new_Foto);
         $this->db->bind('nama', $data['nama']);
         $this->db->bind('jabatan', 2);
         $this->db->bind('alamat', $data['alamat']);
@@ -65,10 +66,11 @@ class User_model
         $this->db->execute();
         return $this->db->rowCount();
     }
-    public function editUser($data, $id_user)
+    public function editUser($data, $id_user, $new_Foto)
     {
-        $query = "UPDATE user SET nama_user=:nama,jabatan=:jabatan,alamat_asal=:alamat WHERE id=:id_user";
+        $query = "UPDATE user SET foto_user=:foto,nama_user=:nama,jabatan=:jabatan,alamat_asal=:alamat WHERE id=:id_user";
         $this->db->query($query);
+        $this->db->bind('foto', $new_Foto);
         $this->db->bind('nama', $data['nama']);
         $this->db->bind('jabatan', $data['jabatan']);
         $this->db->bind('alamat', $data['alamat']);

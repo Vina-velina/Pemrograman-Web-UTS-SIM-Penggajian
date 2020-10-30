@@ -1,4 +1,9 @@
     <div class="container mt-3">
+        <div class="kotak">
+            <?php
+            Flasher::flash()
+            ?>
+        </div>
         <div class="jumbotron ">
             <h1 class="display-5">Data Gaji Karyawan</h1>
             <hr class="my-4">

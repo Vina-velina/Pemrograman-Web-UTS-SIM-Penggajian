@@ -1,4 +1,9 @@
     <div class="container mt-3">
+        <div class="kotak">
+            <?php
+            Flasher::flash()
+            ?>
+        </div>
         <div class="jumbotron">
             <h1 class="display-5">Ubah Data Gaji <span
                     class="text-primary"><?= ucfirst($data['detail_gaji'][0]['nama_user']) ?></span></h1>

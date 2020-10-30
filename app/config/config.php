@@ -1,7 +1,7 @@
 <?php
-define('BASEURL', 'http://localhost/pemweb_6/public');
+define('BASEURL', 'http://localhost/penggajian/public');
 // DB
 define('DB_HOST', 'localhost');
 define('DB_USER', 'root');
 define('DB_PASS', '');
-define('DB_NAME', 'Latihan_6');
+define('DB_NAME', 'db_vina_fix');

@@ -1,9 +1,18 @@
     <div class="container mt-3">
+        <div class="kotak">
+            <?php
+            Flasher::flash()
+            ?>
+        </div>
         <div class="jumbotron">
             <h1 class="display-5">Tambah Data Pegawai</h1>
             <hr class="my-4">
             <div class="col-lg-6">
-                <form action="" method="POST">
+                <form action="" method="POST" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label for="foto">Foto Pegawai</label>
+                        <input required type="file" class="form-control" id="foto" name="file">
+                    </div>
                     <div class="form-group">
                         <label for="email">Email</label>
                         <input required type="email" class="form-control" id="email" name="email">

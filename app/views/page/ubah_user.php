@@ -1,9 +1,18 @@
     <div class="container mt-3">
+        <div class="kotak">
+            <?php
+            Flasher::flash()
+            ?>
+        </div>
         <div class="jumbotron">
             <h1 class="display-5">Ubah Pegawai</h1>
             <hr class="my-4">
             <div class="col-lg-6">
-                <form action="" method="POST">
+                <form action="" method="POST" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label for="foto">Foto Pegawai</label>
+                        <input type="file" class="form-control" id="foto" name="file">
+                    </div>
                     <div class="form-group">
                         <label for="name">Nama User</label>
                         <input required type="text" class="form-control" id="name" name="nama"
@@ -31,6 +40,7 @@
                             <option value="2" <?= $pegawai ?>>Pegawai</option>
                         </select>
                     </div>
+                    <input type="hidden" name="file_old" value="<?= $data['detail_user'][0]['foto_user']?>">
                     <button type="submit" class="btn btn-primary" value="SUBMIT" name="submit">Ubah Data</button>
                 </form>
             </div>
